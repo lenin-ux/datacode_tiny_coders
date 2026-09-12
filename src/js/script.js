@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const formData = new FormData(formLogin);
 
-            fetch('api/login.php', {
+            fetch('/api/login.php', {   // <- ruta absoluta
                 method: 'POST',
                 body: formData
             })
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnLogout = document.getElementById('btnLogout');
     if (btnLogout) {
         btnLogout.addEventListener('click', function () {
-            fetch('api/logout.php').then(() => location.reload());
+            fetch('/api/logout.php').then(() => location.reload());  // <- ruta absoluta
         });
     }
 
