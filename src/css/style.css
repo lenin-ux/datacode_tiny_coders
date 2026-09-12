@@ -76,11 +76,22 @@ h1 {
     text-decoration: underline;
 }
 
-/* Texto más grande y separado en el menú de navegación */
+/* Texto del menú de navegación: separación generosa en escritorio grande,
+   pero se reduce en pantallas medianas para que no se encime ni se corte.
+   Debajo de 992px el navbar se colapsa a menú hamburguesa (Bootstrap), así
+   que ahí no aplican estos márgenes. */
 .navbar-nav .nav-link {
-    font-size: 1.15rem;      /* tamaño del texto */
-    margin-right: 25px;      /* separación entre cada uno */
-    font-weight: 500;        /* un poco más grueso, opcional */
+    font-size: 1.15rem;
+    margin-right: 25px;
+    font-weight: 500;
+}
+
+@media (min-width: 1300px) {
+    .navbar-nav .nav-link {
+        font-size: 1.35rem;
+        margin-left: 20px;
+        margin-right: 20px;
+    }
 }
 
 /* Quita el margen extra del último para que no quede desbalanceado */
@@ -88,17 +99,37 @@ h1 {
     margin-right: 0;
 }
 
-/* Texto más grande y separado en el menú de navegación */
-.navbar-nav .nav-link {
-    font-size: 2rem;      /* tamaño del texto */
-    margin-right: 70px;      /* separación entre cada uno */
-    margin-left: 80px;
-    font-weight: 500;        /* un poco más grueso, opcional */
+/* Colores de marca reutilizables (vino), usados en varias vistas */
+.text-vino {
+    color: #9C2C53;
 }
 
-/* Quita el margen extra del último para que no quede desbalanceado */
-.navbar-nav .nav-item:last-child .nav-link {
-    margin-right: 0;
+.bg-vino {
+    background-color: #9C2C53;
+    color: #fff;
+}
+
+/* Responsividad general: en pantallas angostas reducimos el título
+   principal y el carrusel para que no dominen toda la pantalla, y
+   permitimos que las tablas envueltas en .table-responsive se vean bien. */
+@media (max-width: 576px) {
+    .titulo-principal {
+        font-size: 2.5rem;
+    }
+
+    .carousel-img {
+        height: 220px;
+    }
+
+    .navbar-brand img {
+        height: 60px;
+    }
+}
+
+@media (max-width: 768px) {
+    .carousel-img {
+        height: 300px;
+    }
 }
 
 /* Ícono de login sin borde cuadrado */
@@ -123,6 +154,52 @@ h1 {
     background-color: rgba(255, 255, 255, 0.15);
     color: #fff;
     box-shadow: none;
+}
+
+/* ============================
+   TARJETAS DE ACTIVIDADES (inicio)
+   ============================ */
+
+.seccion-inicio-titulo {
+    font-weight: 800;
+    color: #9C2C53;
+}
+
+.actividad-card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    height: 100%;
+}
+
+.actividad-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 28px rgba(156, 44, 83, 0.18);
+}
+
+.actividad-icono {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background-color: #f1e0e6;
+    color: #9C2C53;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    margin-bottom: 16px;
+}
+
+.actividad-contador {
+    display: inline-block;
+    background-color: #9C2C53;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 3px 14px;
+    border-radius: 20px;
+    margin-bottom: 12px;
 }
 
 /* ============================
@@ -205,22 +282,31 @@ h1 {
     padding: 8px;
 }
 
-/* Al imprimir: oculta todo excepto el gafete */
+/* Al imprimir (cualquier pagina): oculta la barra de navegacion y
+   todo lo marcado como .no-print, pero deja ver el resto del
+   contenido normalmente (tablas, listados, horarios, etc.). */
 @media print {
     .no-print,
     nav {
         display: none !important;
     }
+}
 
-    body * {
+/* Al imprimir SOLO la pagina del gafete: oculta todo lo demas y deja
+   nada mas el gafete. Antes esta regla aplicaba a body* en TODAS las
+   paginas (bug: dejaba en blanco los listados y el horario general al
+   imprimir/exportar a PDF), por eso ahora queda bajo .pagina-gafete. */
+@media print {
+    body.pagina-gafete * {
         visibility: hidden;
     }
 
-    #gafete, #gafete * {
+    body.pagina-gafete #gafete,
+    body.pagina-gafete #gafete * {
         visibility: visible;
     }
 
-    #gafete {
+    body.pagina-gafete #gafete {
         position: absolute;
         top: 0;
         left: 0;

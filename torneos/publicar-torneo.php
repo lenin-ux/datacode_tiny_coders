@@ -1,48 +1,44 @@
 <?php
 session_start();
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/auth.php';
 
-if (!isset($_SESSION['usuario_id']) || $_SESSION['rol_id'] != 3) {
-    header('Location: /index.php');
-    exit;
-}
+requireRole([ROL_COORDINADOR]);
 
 $error = '';
 $exito = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nombre       = trim($_POST['nombre_taller'] ?? '');
-    $materiales   = trim($_POST['materiales_taller'] ?? '');
-    $descripcion  = trim($_POST['descripcion_taller'] ?? '');
-    $fecha        = $_POST['fecha_taller'] ?? '';
-    $horaInicio   = $_POST['horainicio_taller'] ?? '';
-    $horaTermino  = $_POST['horatermino_taller'] ?? '';
+    $nombre       = trim($_POST['nombre_torneo'] ?? '');
+    $formato      = trim($_POST['formato_torneo'] ?? '');
+    $reglas       = trim($_POST['reglas_torneo'] ?? '');
+    $fecha        = $_POST['fechatorneo'] ?? '';
+    $horaInicio   = $_POST['horarioinicio_torneo'] ?? '';
+    $horaFin      = $_POST['horariofin_torneo'] ?? '';
     $disponibilidad = $_POST['disponibilidades_id_disponiblidad'] ?? '';
     $jornada      = $_POST['jornadas_id_jornada'] ?? '';
 
-    if (empty($nombre) || empty($materiales) || empty($descripcion) || empty($fecha)
-        || empty($horaInicio) || empty($horaTermino) || empty($disponibilidad) || empty($jornada)) {
-        $error = 'Todos los campos son obligatorios.';
-    } elseif (mb_strlen($nombre) > 45 || mb_strlen($materiales) > 45 || mb_strlen($descripcion) > 45) {
-        $error = 'Nombre, materiales y descripción no pueden superar 45 caracteres cada uno.';
-    } elseif ($horaTermino <= $horaInicio) {
+    if (empty($nombre) || empty($formato) || empty($reglas) || empty($fecha)
+        || empty($horaInicio) || empty($disponibilidad) || empty($jornada)) {
+        $error = 'Todos los campos son obligatorios excepto la hora de término.';
+    } elseif (mb_strlen($nombre) > 80) {
+        $error = 'El nombre no puede superar 80 caracteres.';
+    } elseif ($horaFin !== '' && $horaFin <= $horaInicio) {
         $error = 'La hora de término debe ser posterior a la hora de inicio.';
     } else {
         $stmt = $pdo->prepare("
-            INSERT INTO talleres (
-                nombre_taller, materiales_taller, descripcion_taller,
-                fecha_taller, horainicio_taller, horatermino_taller,
-                disponibilidades_id_disponiblidad, jornadas_id_jornada,
-                usuarios_id_usuario
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO torneos (
+                nombre_torneo, formato_torneo, reglas_torneo,
+                horarioinicio_torneo, horariofin_torneo, fechatorneo,
+                disponibilidades_id_disponiblidad, jornadas_id_jornada
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt->execute([
-            $nombre, $materiales, $descripcion,
-            $fecha, $horaInicio, $horaTermino,
-            $disponibilidad, $jornada,
-            $_SESSION['usuario_id']
+            $nombre, $formato, $reglas,
+            $horaInicio, $horaFin ?: null, $fecha,
+            $disponibilidad, $jornada
         ]);
-        $exito = 'Taller publicado correctamente.';
+        $exito = 'Torneo publicado correctamente.';
     }
 }
 
@@ -64,19 +60,19 @@ require_once __DIR__ . '/../src/includes/header.php';
 ?>
 
 <div class="container mt-5 mb-5">
-    <h2 class="text-vino mb-4">Publicar nuevo taller</h2>
+    <h2 class="text-vino mb-4">Publicar nuevo torneo</h2>
 
     <?php if ($error): ?><div class="alert alert-danger"><?= htmlspecialchars($error) ?></div><?php endif; ?>
     <?php if ($exito): ?>
         <div class="alert alert-success">
             <?= htmlspecialchars($exito) ?>
-            &middot; <a href="/talleres/ver-talleres.php">Ver talleres publicados</a>
+            &middot; <a href="/torneos/ver-torneos.php">Ver torneos publicados</a>
         </div>
     <?php endif; ?>
 
     <?php if (empty($jornadas) || empty($disponibilidades)): ?>
         <div class="alert alert-warning">
-            Antes de publicar un taller necesitas al menos:
+            Antes de publicar un torneo necesitas al menos:
             <ul class="mb-0">
                 <?php if (empty($jornadas)): ?><li><a href="/talleres/crear-jornada.php">Crear una jornada</a></li><?php endif; ?>
                 <?php if (empty($disponibilidades)): ?><li><a href="/talleres/crear-disponibilidad.php">Crear una disponibilidad</a></li><?php endif; ?>
@@ -88,32 +84,32 @@ require_once __DIR__ . '/../src/includes/header.php';
         <div class="card-body">
             <form method="POST">
                 <div class="mb-3">
-                    <label class="form-label">Nombre del taller</label>
-                    <input type="text" name="nombre_taller" class="form-control" maxlength="45" required>
+                    <label class="form-label">Nombre del torneo</label>
+                    <input type="text" name="nombre_torneo" maxlength="80" class="form-control" required>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Descripción</label>
-                    <textarea name="descripcion_taller" class="form-control" rows="3" maxlength="45" required></textarea>
+                    <label class="form-label">Formato</label>
+                    <textarea name="formato_torneo" class="form-control" rows="2" placeholder="Ej. Eliminación directa, equipos de 3 integrantes" required></textarea>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Materiales necesarios</label>
-                    <input type="text" name="materiales_taller" class="form-control" placeholder="Ej. Laptop, cuaderno" maxlength="45" required>
+                    <label class="form-label">Reglas</label>
+                    <textarea name="reglas_torneo" class="form-control" rows="3" required></textarea>
                 </div>
 
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Fecha</label>
-                        <input type="date" name="fecha_taller" class="form-control" required>
+                        <input type="date" name="fechatorneo" class="form-control" required>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Hora inicio</label>
-                        <input type="time" name="horainicio_taller" class="form-control" required>
+                        <input type="time" name="horarioinicio_torneo" class="form-control" required>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Hora término</label>
-                        <input type="time" name="horatermino_taller" class="form-control" required>
+                        <label class="form-label">Hora término (opcional)</label>
+                        <input type="time" name="horariofin_torneo" class="form-control">
                     </div>
                 </div>
 
@@ -144,12 +140,12 @@ require_once __DIR__ . '/../src/includes/header.php';
                             </option>
                         <?php endforeach; ?>
                     </select>
-                    <small class="text-muted">El responsable se asignará después desde "Modificar talleres".</small>
+                    <small class="text-muted">El responsable (Docente) se asignará después desde "Modificar torneos".</small>
                 </div>
 
                 <button type="submit" class="btn btn-login w-100"
                     <?= (empty($jornadas) || empty($disponibilidades)) ? 'disabled' : '' ?>>
-                    Publicar taller
+                    Publicar torneo
                 </button>
             </form>
         </div>

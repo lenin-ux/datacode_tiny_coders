@@ -15,6 +15,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($nombre)) {
         $error = 'El nombre del aula es obligatorio.';
+    } elseif (mb_strlen($nombre) > 35) {
+        $error = 'El nombre del aula no puede superar 35 caracteres.';
     } else {
         $stmt = $pdo->prepare("INSERT INTO aulas (nombre_aula) VALUES (?)");
         $stmt->execute([$nombre]);
@@ -41,7 +43,7 @@ require_once __DIR__ . '/../src/includes/header.php';
                     <form method="POST">
                         <div class="mb-3">
                             <label class="form-label">Nombre del aula</label>
-                            <input type="text" name="nombre_aula" class="form-control" placeholder="Ej. Laboratorio 3" required>
+                            <input type="text" name="nombre_aula" class="form-control" maxlength="35" placeholder="Ej. Laboratorio 3" required>
                         </div>
                         <button type="submit" class="btn btn-login w-100">Guardar</button>
                     </form>
@@ -51,6 +53,7 @@ require_once __DIR__ . '/../src/includes/header.php';
 
         <div class="col-md-7">
             <h5 class="mb-3">Aulas existentes</h5>
+            <div class="table-responsive">
             <table class="table table-striped">
                 <thead><tr><th>ID</th><th>Nombre</th></tr></thead>
                 <tbody>
@@ -65,6 +68,7 @@ require_once __DIR__ . '/../src/includes/header.php';
                     <?php endif; ?>
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 

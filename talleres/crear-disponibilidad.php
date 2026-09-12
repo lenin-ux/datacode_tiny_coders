@@ -77,7 +77,7 @@ require_once __DIR__ . '/../src/includes/header.php';
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Duración (minutos)</label>
-                            <input type="number" name="duracion_disponibilidad" class="form-control" min="1" placeholder="Ej. 120" required>
+                            <input type="number" name="duracion_disponibilidad" class="form-control" min="1" max="480" placeholder="Ej. 120" required>
                         </div>
                         <button type="submit" class="btn btn-login w-100" <?= empty($aulas) ? 'disabled' : '' ?>>Guardar</button>
                     </form>
@@ -87,6 +87,7 @@ require_once __DIR__ . '/../src/includes/header.php';
 
         <div class="col-md-7">
             <h5 class="mb-3">Disponibilidades existentes</h5>
+            <div class="table-responsive">
             <table class="table table-striped">
                 <thead><tr><th>ID</th><th>Aula</th><th>Fecha</th><th>Hora</th><th>Duración</th></tr></thead>
                 <tbody>
@@ -104,6 +105,7 @@ require_once __DIR__ . '/../src/includes/header.php';
                     <?php endif; ?>
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 

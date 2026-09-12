@@ -192,6 +192,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel_file']) && $_F
                     $fallidos++;
                     continue;
                 }
+                if (mb_strlen($nombres) > 80 || mb_strlen($apellidos) > 80) {
+                    $reporteImportacion[] = "Fila $numFila: nombre o apellido excede 80 caracteres.";
+                    $fallidos++;
+                    continue;
+                }
+                if (mb_strlen($correo) > 120) {
+                    $reporteImportacion[] = "Fila $numFila: el correo excede 120 caracteres.";
+                    $fallidos++;
+                    continue;
+                }
                 if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
                     $reporteImportacion[] = "Fila $numFila: correo inválido.";
                     $fallidos++;
@@ -244,6 +254,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nombres_usuario'])) {
         $error = 'Todos los campos son obligatorios.';
     } elseif (strlen($matricula) > 8) {
         $error = 'La matrícula no puede tener más de 8 caracteres.';
+    } elseif (mb_strlen($nombres) > 80 || mb_strlen($apellidos) > 80) {
+        $error = 'Nombres y apellidos no pueden superar 80 caracteres.';
+    } elseif (mb_strlen($correo) > 120) {
+        $error = 'El correo no puede superar 120 caracteres.';
     } elseif (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
         $error = 'El correo no es válido.';
     } else {
@@ -384,11 +398,11 @@ require_once __DIR__ . '/../src/includes/header.php';
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Nombre(s)</label>
-                                <input type="text" name="nombres_usuario" class="form-control" required>
+                                <input type="text" name="nombres_usuario" class="form-control" maxlength="80" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Apellidos</label>
-                                <input type="text" name="apellidos_usuario" class="form-control" required>
+                                <input type="text" name="apellidos_usuario" class="form-control" maxlength="80" required>
                             </div>
                         </div>
 
@@ -399,7 +413,7 @@ require_once __DIR__ . '/../src/includes/header.php';
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Correo del alumno</label>
-                                <input type="email" name="correo_usuario" class="form-control" required>
+                                <input type="email" name="correo_usuario" class="form-control" maxlength="120" required>
                             </div>
                         </div>
 
@@ -433,6 +447,7 @@ require_once __DIR__ . '/../src/includes/header.php';
 
         <div class="col-md-6">
             <h5 class="mb-3">Últimos alumnos integrados</h5>
+            <div class="table-responsive">
             <table class="table table-striped">
                 <thead><tr><th>Nombre</th><th>Matrícula</th><th>Grupo</th></tr></thead>
                 <tbody>
@@ -448,6 +463,7 @@ require_once __DIR__ . '/../src/includes/header.php';
                     <?php endif; ?>
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 </div>

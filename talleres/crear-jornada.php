@@ -17,6 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($nombre) || empty($fecha) || empty($ur)) {
         $error = 'Todos los campos son obligatorios.';
+    } elseif (mb_strlen($nombre) > 45) {
+        $error = 'El nombre de la jornada no puede superar 45 caracteres.';
     } else {
         $stmt = $pdo->prepare("INSERT INTO jornadas (nombre_jornada, fecha_jornada, unidadesregionales_id_ur) VALUES (?, ?, ?)");
         $stmt->execute([$nombre, $fecha, $ur]);
@@ -56,7 +58,7 @@ require_once __DIR__ . '/../src/includes/header.php';
                     <form method="POST">
                         <div class="mb-3">
                             <label class="form-label">Nombre de la jornada</label>
-                            <input type="text" name="nombre_jornada" class="form-control" placeholder="Ej. Jornada Otoño 2026" required>
+                            <input type="text" name="nombre_jornada" class="form-control" maxlength="45" placeholder="Ej. Jornada Otoño 2026" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Fecha</label>
@@ -79,6 +81,7 @@ require_once __DIR__ . '/../src/includes/header.php';
 
         <div class="col-md-7">
             <h5 class="mb-3">Jornadas existentes</h5>
+            <div class="table-responsive">
             <table class="table table-striped">
                 <thead><tr><th>ID</th><th>Nombre</th><th>Fecha</th><th>Unidad Regional</th></tr></thead>
                 <tbody>
@@ -95,6 +98,7 @@ require_once __DIR__ . '/../src/includes/header.php';
                     <?php endif; ?>
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 

@@ -34,6 +34,7 @@ $mostrarGrupo = in_array($_SESSION['rol_id'], [1, 2]);
 // Folio simple: año actual + id de usuario con ceros a la izquierda
 $folio = 'DC' . date('y') . str_pad($u['id_usuario'], 5, '0', STR_PAD_LEFT);
 
+$bodyClass = 'pagina-gafete';
 require_once __DIR__ . '/src/includes/header.php';
 ?>
 

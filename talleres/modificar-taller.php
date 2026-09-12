@@ -27,6 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($nombre) || empty($materiales) || empty($descripcion) || empty($fecha)
         || empty($horaInicio) || empty($horaTermino) || empty($disponibilidad) || empty($jornada)) {
         $error = 'Todos los campos son obligatorios excepto el responsable.';
+    } elseif (mb_strlen($nombre) > 45 || mb_strlen($materiales) > 45 || mb_strlen($descripcion) > 45) {
+        $error = 'Nombre, materiales y descripción no pueden superar 45 caracteres cada uno.';
     } elseif ($horaTermino <= $horaInicio) {
         $error = 'La hora de término debe ser posterior a la hora de inicio.';
     } else {
@@ -102,6 +104,7 @@ require_once __DIR__ . '/../src/includes/header.php';
     <?php if (!$tallerEdit): ?>
 
         <!-- Lista de talleres para elegir cuál editar -->
+        <div class="table-responsive">
         <table class="table table-striped">
             <thead><tr><th>Taller</th><th>Fecha</th><th>Responsable</th><th></th></tr></thead>
             <tbody>
@@ -122,6 +125,7 @@ require_once __DIR__ . '/../src/includes/header.php';
                 <?php endif; ?>
             </tbody>
         </table>
+        </div>
 
     <?php else: ?>
 
@@ -135,18 +139,18 @@ require_once __DIR__ . '/../src/includes/header.php';
 
                     <div class="mb-3">
                         <label class="form-label">Nombre del taller</label>
-                        <input type="text" name="nombre_taller" class="form-control"
+                        <input type="text" name="nombre_taller" class="form-control" maxlength="45"
                                value="<?= htmlspecialchars($tallerEdit['nombre_taller']) ?>" required>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Descripción</label>
-                        <textarea name="descripcion_taller" class="form-control" rows="3" required><?= htmlspecialchars($tallerEdit['descripcion_taller']) ?></textarea>
+                        <textarea name="descripcion_taller" class="form-control" rows="3" maxlength="45" required><?= htmlspecialchars($tallerEdit['descripcion_taller']) ?></textarea>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Materiales necesarios</label>
-                        <input type="text" name="materiales_taller" class="form-control"
+                        <input type="text" name="materiales_taller" class="form-control" maxlength="45"
                                value="<?= htmlspecialchars($tallerEdit['materiales_taller']) ?>" required>
                     </div>
 

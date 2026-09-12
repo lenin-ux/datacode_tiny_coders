@@ -17,6 +17,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($turno) || empty($numero) || empty($semestre)) {
         $error = 'Todos los campos son obligatorios.';
+    } elseif (!in_array($turno, ['Matutino', 'Vespertino'], true)) {
+        $error = 'Turno inválido.';
+    } elseif ((int) $numero < 1 || (int) $numero > 99 || (int) $semestre < 1 || (int) $semestre > 12) {
+        $error = 'Número de grupo o semestre fuera de rango.';
     } else {
         $stmt = $pdo->prepare("INSERT INTO grupos (turno_grupo, numero_grupo, semestre_grupo) VALUES (?, ?, ?)");
         $stmt->execute([$turno, $numero, $semestre]);
@@ -51,7 +55,7 @@ require_once __DIR__ . '/../src/includes/header.php';
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Número de grupo</label>
-                            <input type="number" name="numero_grupo" class="form-control" min="1" placeholder="Ej. 5" required>
+                            <input type="number" name="numero_grupo" class="form-control" min="1" max="99" placeholder="Ej. 5" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Semestre</label>
@@ -65,6 +69,7 @@ require_once __DIR__ . '/../src/includes/header.php';
 
         <div class="col-md-7">
             <h5 class="mb-3">Grupos existentes</h5>
+            <div class="table-responsive">
             <table class="table table-striped">
                 <thead><tr><th>ID</th><th>Turno</th><th>Número</th><th>Semestre</th></tr></thead>
                 <tbody>
@@ -81,6 +86,7 @@ require_once __DIR__ . '/../src/includes/header.php';
                     <?php endif; ?>
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 

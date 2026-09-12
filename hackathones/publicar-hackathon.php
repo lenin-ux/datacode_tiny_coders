@@ -1,48 +1,48 @@
 <?php
 session_start();
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/auth.php';
 
-if (!isset($_SESSION['usuario_id']) || $_SESSION['rol_id'] != 3) {
-    header('Location: /index.php');
-    exit;
-}
+requireRole([ROL_COORDINADOR]);
 
 $error = '';
 $exito = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nombre       = trim($_POST['nombre_taller'] ?? '');
-    $materiales   = trim($_POST['materiales_taller'] ?? '');
-    $descripcion  = trim($_POST['descripcion_taller'] ?? '');
-    $fecha        = $_POST['fecha_taller'] ?? '';
-    $horaInicio   = $_POST['horainicio_taller'] ?? '';
-    $horaTermino  = $_POST['horatermino_taller'] ?? '';
+    $nombre       = trim($_POST['nombre_hackaton'] ?? '');
+    $descripcion  = trim($_POST['descripcion_hackaton'] ?? '');
+    $fechaInicio  = $_POST['fechainicio_hackaton'] ?? '';
+    $fechaFinal   = $_POST['fechafinal_hackaton'] ?? '';
+    $cuota        = trim($_POST['cuota_hackaton'] ?? '');
     $disponibilidad = $_POST['disponibilidades_id_disponiblidad'] ?? '';
     $jornada      = $_POST['jornadas_id_jornada'] ?? '';
+    $numAsistencia = trim($_POST['numasistencia_hackathon'] ?? '');
 
-    if (empty($nombre) || empty($materiales) || empty($descripcion) || empty($fecha)
-        || empty($horaInicio) || empty($horaTermino) || empty($disponibilidad) || empty($jornada)) {
-        $error = 'Todos los campos son obligatorios.';
-    } elseif (mb_strlen($nombre) > 45 || mb_strlen($materiales) > 45 || mb_strlen($descripcion) > 45) {
-        $error = 'Nombre, materiales y descripción no pueden superar 45 caracteres cada uno.';
-    } elseif ($horaTermino <= $horaInicio) {
-        $error = 'La hora de término debe ser posterior a la hora de inicio.';
+    if (empty($nombre) || empty($fechaInicio) || empty($fechaFinal)
+        || empty($disponibilidad) || empty($jornada) || $numAsistencia === '') {
+        $error = 'Todos los campos son obligatorios excepto la descripción y la cuota.';
+    } elseif (mb_strlen($nombre) > 80) {
+        $error = 'El nombre no puede superar 80 caracteres.';
+    } elseif ($cuota !== '' && (float) $cuota > 999.99) {
+        $error = 'La cuota no puede ser mayor a 999.99.';
+    } elseif ($fechaFinal < $fechaInicio) {
+        $error = 'La fecha final no puede ser anterior a la fecha de inicio.';
     } else {
         $stmt = $pdo->prepare("
-            INSERT INTO talleres (
-                nombre_taller, materiales_taller, descripcion_taller,
-                fecha_taller, horainicio_taller, horatermino_taller,
+            INSERT INTO hackathones (
+                nombre_hackaton, descripcion_hackaton,
+                fechainicio_hackaton, fechafinal_hackaton, cuota_hackaton,
                 disponibilidades_id_disponiblidad, jornadas_id_jornada,
-                usuarios_id_usuario
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                numasistencia_hackathon
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt->execute([
-            $nombre, $materiales, $descripcion,
-            $fecha, $horaInicio, $horaTermino,
+            $nombre, $descripcion ?: null,
+            $fechaInicio, $fechaFinal, $cuota !== '' ? $cuota : null,
             $disponibilidad, $jornada,
-            $_SESSION['usuario_id']
+            $numAsistencia
         ]);
-        $exito = 'Taller publicado correctamente.';
+        $exito = 'Hackathon publicado correctamente.';
     }
 }
 
@@ -64,19 +64,19 @@ require_once __DIR__ . '/../src/includes/header.php';
 ?>
 
 <div class="container mt-5 mb-5">
-    <h2 class="text-vino mb-4">Publicar nuevo taller</h2>
+    <h2 class="text-vino mb-4">Publicar nuevo hackathon</h2>
 
     <?php if ($error): ?><div class="alert alert-danger"><?= htmlspecialchars($error) ?></div><?php endif; ?>
     <?php if ($exito): ?>
         <div class="alert alert-success">
             <?= htmlspecialchars($exito) ?>
-            &middot; <a href="/talleres/ver-talleres.php">Ver talleres publicados</a>
+            &middot; <a href="/hackathones/ver-hackathones.php">Ver hackathones publicados</a>
         </div>
     <?php endif; ?>
 
     <?php if (empty($jornadas) || empty($disponibilidades)): ?>
         <div class="alert alert-warning">
-            Antes de publicar un taller necesitas al menos:
+            Antes de publicar un hackathon necesitas al menos:
             <ul class="mb-0">
                 <?php if (empty($jornadas)): ?><li><a href="/talleres/crear-jornada.php">Crear una jornada</a></li><?php endif; ?>
                 <?php if (empty($disponibilidades)): ?><li><a href="/talleres/crear-disponibilidad.php">Crear una disponibilidad</a></li><?php endif; ?>
@@ -88,33 +88,34 @@ require_once __DIR__ . '/../src/includes/header.php';
         <div class="card-body">
             <form method="POST">
                 <div class="mb-3">
-                    <label class="form-label">Nombre del taller</label>
-                    <input type="text" name="nombre_taller" class="form-control" maxlength="45" required>
+                    <label class="form-label">Nombre del hackathon</label>
+                    <input type="text" name="nombre_hackaton" maxlength="80" class="form-control" required>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Descripción</label>
-                    <textarea name="descripcion_taller" class="form-control" rows="3" maxlength="45" required></textarea>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Materiales necesarios</label>
-                    <input type="text" name="materiales_taller" class="form-control" placeholder="Ej. Laptop, cuaderno" maxlength="45" required>
+                    <textarea name="descripcion_hackaton" class="form-control" rows="3"></textarea>
                 </div>
 
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Fecha</label>
-                        <input type="date" name="fecha_taller" class="form-control" required>
+                        <label class="form-label">Fecha inicio</label>
+                        <input type="date" name="fechainicio_hackaton" class="form-control" required>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Hora inicio</label>
-                        <input type="time" name="horainicio_taller" class="form-control" required>
+                        <label class="form-label">Fecha final</label>
+                        <input type="date" name="fechafinal_hackaton" class="form-control" required>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Hora término</label>
-                        <input type="time" name="horatermino_taller" class="form-control" required>
+                        <label class="form-label">Cuota (opcional)</label>
+                        <input type="number" step="0.01" min="0" max="999.99" name="cuota_hackaton" class="form-control" placeholder="0.00">
                     </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Número de pases de lista esperados</label>
+                    <input type="number" name="numasistencia_hackathon" class="form-control" min="1" value="2" required>
+                    <small class="text-muted">Cuántos registros de asistencia se tomarán durante el evento (por ejemplo, 2 si dura 2 días).</small>
                 </div>
 
                 <div class="mb-3">
@@ -132,7 +133,7 @@ require_once __DIR__ . '/../src/includes/header.php';
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label">Disponibilidad (aula, fecha y horario)</label>
+                    <label class="form-label">Disponibilidad (aula, fecha y horario de inicio)</label>
                     <select name="disponibilidades_id_disponiblidad" class="form-select" required>
                         <option value="">Selecciona...</option>
                         <?php foreach ($disponibilidades as $d): ?>
@@ -144,12 +145,12 @@ require_once __DIR__ . '/../src/includes/header.php';
                             </option>
                         <?php endforeach; ?>
                     </select>
-                    <small class="text-muted">El responsable se asignará después desde "Modificar talleres".</small>
+                    <small class="text-muted">El responsable (Docente), las rúbricas y los entregables se agregan después desde "Modificar hackathones".</small>
                 </div>
 
                 <button type="submit" class="btn btn-login w-100"
                     <?= (empty($jornadas) || empty($disponibilidades)) ? 'disabled' : '' ?>>
-                    Publicar taller
+                    Publicar hackathon
                 </button>
             </form>
         </div>

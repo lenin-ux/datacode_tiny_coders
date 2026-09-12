@@ -1,0 +1,24 @@
+# Variables de entorno / credenciales
+.env
+.env.*
+!.env.example
+
+# Dependencias (por si se agrega Composer más adelante)
+/vendor/
+composer.lock
+
+# Archivos subidos por usuarios (no son código fuente)
+/src/img/usuarios/*
+!/src/img/usuarios/.gitkeep
+/src/img/anuncios/*
+!/src/img/anuncios/.gitkeep
+
+# Sistema operativo / editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+
+# Backups de base de datos que no deban versionarse
+*.sql.bak
